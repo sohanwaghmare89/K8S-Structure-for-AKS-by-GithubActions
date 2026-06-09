@@ -4,10 +4,10 @@ on:
 
 env:
   ACR_REPOSITORY: My-app-BE-FE-prod
-  NEXT_PUBLIC_APP_ENV: 'qa'
+  NEXT_PUBLIC_APP_ENV: 'prod'
   AKS_RESOURCE_GROUP: my-prod-apps-rg
   AKS_CLUSTER_NAME: my-prod-aks
-  ENV: 'qa'
+  ENV: 'prod'
 
 jobs:
   build-push-and-deploy-qa-azure:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: 'qa'    # hardcoded
+          ref: 'prod'    # hardcoded
 
       - name: Azure Login
         uses: azure/login@v2
