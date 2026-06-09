@@ -1,0 +1,72 @@
+name: Build, Push And Deploy to QA
+on:
+  workflow_dispatch:
+
+env:
+  ACR_REPOSITORY: My-app-BE-FE-qa
+  NEXT_PUBLIC_APP_ENV: 'qa'
+  AKS_RESOURCE_GROUP: my-qa-apps-rg
+  AKS_CLUSTER_NAME: my-qa-aks
+  ENV: 'qa'
+
+jobs:
+  build-push-and-deploy-qa-azure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: 'qa'    # hardcoded
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Set image tag
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "IMAGE_TAG=${SHORT_SHA}" >> $GITHUB_ENV
+
+      - name: Build and push image to ACR
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+          ACR_REPOSITORY: ${{ env.ACR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_APP_ENV=${{ env.NEXT_PUBLIC_APP_ENV }} \
+            -t $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG .
+          docker push $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          kustomize-version: "5.4.3"
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v4
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+
+      - name: Deploy to AKS with Kustomize
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        working-directory: k8s/overlays/${{ env.ENV }}
+        run: |
+          kustomize edit set image My-app-BE-FE=myecr.azurecr.io/My-app-BE-FE-qa:$IMAGE_TAG
+          kustomize build . | kubectl apply -f -
+          kubectl rollout restart deployment My-app-BE-FE -n mynamespace
