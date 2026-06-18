@@ -10,7 +10,7 @@ env:
   ENV: 'prod'
 
 jobs:
-  build-push-and-deploy-qa-azure:
+  build-push-and-deploy-prod-azure:
     runs-on: ubuntu-latest
 
     steps:
