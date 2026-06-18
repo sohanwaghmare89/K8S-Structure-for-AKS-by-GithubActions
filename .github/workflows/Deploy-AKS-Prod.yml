@@ -1,4 +1,4 @@
-name: Build, Push And Deploy to QA
+name: Build, Push And Deploy to PROD
 on:
   workflow_dispatch:
 
