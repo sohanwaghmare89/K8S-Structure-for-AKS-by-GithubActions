@@ -1,34 +1,54 @@
-KS Structure for Application Deployment using GitHub Actions
-Overview
+# 🚀 AKS Application Deployment Structure using GitHub Actions
 
-This repository provides a standardized Kubernetes (AKS) deployment structure designed to automate application deployments using GitHub Actions. It helps DevOps teams maintain a consistent deployment workflow, improve deployment reliability, and implement Infrastructure as Code (IaC) and GitOps best practices.
+## 📖 Overview
 
-The primary goal of this repository is to simplify application deployment to Azure Kubernetes Service (AKS) while ensuring scalability, maintainability, and automation.
+This repository provides a standardized Kubernetes deployment structure for applications running on **Azure Kubernetes Service (AKS)** using **GitHub Actions** for Continuous Integration and Continuous Deployment (CI/CD).
 
-Architecture
+The objective is to establish a reusable and scalable deployment framework that enables teams to:
 
+* Automate application deployments
+* Maintain environment consistency
+* Follow Kubernetes best practices
+* Reduce manual deployment efforts
+* Improve release reliability and speed
+
+This structure can be adopted across multiple projects to ensure a consistent deployment approach for AKS workloads.
+
+---
+
+## 🏗️ Architecture
+
+```text
 Developer
     │
     ▼
 GitHub Repository
     │
     ▼
-GitHub Actions Pipeline
+GitHub Actions Workflow
     │
-    ├── Build Application
-    ├── Run Validation Checks
+    ├── Code Validation
     ├── Build Docker Image
-    ├── Push Image to Container Registry
+    ├── Push Image to ACR
+    ├── Update Kubernetes Manifests
     └── Deploy to AKS
-            │
-            ▼
-     Azure Kubernetes Service
+             │
+             ▼
+ Azure Kubernetes Service (AKS)
+```
 
-Repository Structure
+---
+
+## 📂 Repository Structure
+
+```bash
 .
 ├── .github/
 │   └── workflows/
-│       └── deployment-pipeline.yml
+│       ├── dev-deploy.yml
+│       ├── qa-deploy.yml
+│       ├── uat-deploy.yml
+│       └── prod-deploy.yml
 │
 ├── kubernetes/
 │   ├── dev/
@@ -44,88 +64,74 @@ Repository Structure
 │   └── secret.yaml
 │
 ├── scripts/
-│   └── deployment-scripts
+│   └── deployment.sh
 │
 └── README.md
+```
 
-Key Features
-GitHub Actions CI/CD
-Automated deployments through GitHub Actions
-Environment-specific deployment workflows
-Reusable workflow templates
-Automated validation before deployment
-Kubernetes Best Practices
-Namespace isolation
-Environment segregation
-Resource limits and requests
-ConfigMap and Secret management
-Health checks and readiness probes
-AKS Integration
-Native Azure Kubernetes Service support
-Secure authentication using Service Principal or Workload Identity
-Automated deployment updates
-Scalable container orchestration
+---
 
-Deployment Workflow
-Step 1: Code Commit
+## ⚙️ CI/CD Workflow
 
-Developer pushes code changes to the GitHub repository.
+### 1️⃣ Code Commit
 
-Step 2: GitHub Actions Trigger
+Developers push code changes to the GitHub repository.
 
-The GitHub Actions workflow is automatically triggered based on the configured branch.
+### 2️⃣ Workflow Trigger
 
-Step 3: Build Process
-Checkout source code
-Validate manifests
-Build Docker image
-Tag image with version
-Step 4: Image Push
+GitHub Actions automatically triggers based on the configured branch strategy.
 
-Push Docker image to:
+### 3️⃣ Build Stage
 
-Azure Container Registry (ACR)
-Docker Hub (Optional)
-Step 5: AKS Deployment
-Authenticate to Azure
-Connect to AKS cluster
-Update Kubernetes manifests
-Deploy latest application version
-Step 6: Verification
-Verify rollout status
-Validate pod health
-Confirm successful deployment
+* Checkout Source Code
+* Validate Kubernetes Manifests
+* Build Docker Image
+* Tag Image Version
 
-Step 1: Code Commit
+### 4️⃣ Image Push
 
-Developer pushes code changes to the GitHub repository.
+Container images are pushed to:
 
-Step 2: GitHub Actions Trigger
+* Azure Container Registry (ACR)
+* Docker Hub (Optional)
 
-The GitHub Actions workflow is automatically triggered based on the configured branch.
+### 5️⃣ Deployment Stage
 
-Step 3: Build Process
-Checkout source code
-Validate manifests
-Build Docker image
-Tag image with version
-Step 4: Image Push
+The workflow:
 
-Push Docker image to:
+* Authenticates with Azure
+* Connects to AKS Cluster
+* Updates Kubernetes Resources
+* Performs Rolling Deployment
 
-Azure Container Registry (ACR)
-Docker Hub (Optional)
-Step 5: AKS Deployment
-Authenticate to Azure
-Connect to AKS cluster
-Update Kubernetes manifests
-Deploy latest application version
-Step 6: Verification
-Verify rollout status
-Validate pod health
-Confirm successful deployment
+### 6️⃣ Verification
 
-Required GitHub Secrets: Configure the following secrets in GitHub
+Deployment validation includes:
+
+* Pod Health Checks
+* Rollout Verification
+* Application Availability Validation
+
+---
+
+## 🌍 Environment Strategy
+
+| Environment | Purpose                       |
+| ----------- | ----------------------------- |
+| Dev         | Development & Feature Testing |
+| QA          | Quality Assurance Testing     |
+| UAT         | User Acceptance Testing       |
+| Prod        | Production Workloads          |
+
+Each environment contains its own Kubernetes configuration and deployment settings.
+
+---
+
+## 🔐 Required GitHub Secrets
+
+Configure the following repository secrets:
+
+```text
 AZURE_CLIENT_ID
 AZURE_CLIENT_SECRET
 AZURE_TENANT_ID
@@ -133,55 +139,120 @@ AZURE_SUBSCRIPTION_ID
 AKS_CLUSTER_NAME
 AKS_RESOURCE_GROUP
 ACR_NAME
+```
 
+---
 
-Kubernetes Components
-Deployment
+## ☸️ Kubernetes Resources
 
-Manages application pods and rolling updates.
+### Deployment
 
-Service
+Manages application lifecycle, scaling, and rolling updates.
 
-Provides internal or external access to applications.
+### Service
 
-Ingress
+Provides internal and external access to application pods.
 
-Handles external traffic routing and SSL termination.
+### Ingress
 
-ConfigMap
+Handles HTTP/HTTPS routing and SSL termination.
 
-Stores application configuration.
+### ConfigMap
 
-Secret
+Stores non-sensitive application configuration.
 
-Stores sensitive information securely.
+### Secret
 
-Namespace
+Stores sensitive application data securely.
+
+### Namespace
 
 Provides logical separation between environments.
 
+---
 
-Benefits
-Fully automated deployments
-Consistent deployment process
-Reduced manual effort
-Faster release cycles
-Improved reliability
-Easy rollback capability
-Environment standardization
-Scalable AKS architecture
+## ✨ Key Features
 
-Best Practices
-Use separate namespaces for each environment.
-Store sensitive values in Kubernetes Secrets.
-Avoid hardcoding credentials.
-Use resource limits for all workloads.
-Implement readiness and liveness probes.
-Follow branch-based deployment strategies.
-Use image versioning instead of latest tags.
-Review deployments through Pull Requests before production release.
+* GitHub Actions based CI/CD
+* AKS Native Deployment Support
+* Environment-wise Configuration
+* Docker Image Versioning
+* Automated Rollout Deployment
+* Kubernetes Best Practices
+* Namespace Isolation
+* ConfigMap & Secret Management
+* Scalable Deployment Structure
+* Easy Rollback Capability
 
-Conclusion
+---
 
-This repository serves as a reusable AKS deployment framework that enables teams to deploy Kubernetes applications efficiently through GitHub Actions. 
-By following a structured deployment approach, organizations can achieve consistent, secure, and scalable application delivery across multiple environments.
+## 🚀 Deployment Commands
+
+### Verify Pods
+
+```bash
+kubectl get pods -A
+```
+
+### Verify Services
+
+```bash
+kubectl get svc -A
+```
+
+### Verify Ingress
+
+```bash
+kubectl get ingress -A
+```
+
+### Check Rollout Status
+
+```bash
+kubectl rollout status deployment/<deployment-name> -n <namespace>
+```
+
+### View Logs
+
+```bash
+kubectl logs -f <pod-name> -n <namespace>
+```
+
+---
+
+## 📌 Best Practices
+
+✅ Use separate namespaces per environment
+
+✅ Store sensitive information in Kubernetes Secrets
+
+✅ Use resource requests and limits
+
+✅ Implement readiness and liveness probes
+
+✅ Follow Pull Request based deployments
+
+✅ Use image tags instead of latest
+
+✅ Enable deployment approval for production
+
+✅ Maintain environment-specific configuration
+
+---
+
+## 🎯 Benefits
+
+* Faster Application Delivery
+* Reduced Manual Effort
+* Improved Deployment Reliability
+* Standardized AKS Structure
+* Better Environment Management
+* Enhanced Security
+* Scalable Architecture
+* Simplified Operations
+
+---
+
+## 🏁 Conclusion
+
+This repository serves as a reusable Kubernetes deployment framework for Azure Kubernetes Service (AKS). By leveraging GitHub Actions, teams can automate application delivery, enforce deployment standards, and maintain a scalable and reliable CI/CD process across multiple environments.
